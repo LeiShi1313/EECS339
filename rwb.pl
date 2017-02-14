@@ -324,7 +324,7 @@ if ($action eq "base") {
   # Google maps API, needed to draw the map
   #
   print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
-  print "<script src=\"https://maps.google.com/maps/api/js?sensor=false\" type=\"text/javascript\"></script>";
+  print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
 
   #
   # The Javascript portion of our app
@@ -346,13 +346,13 @@ if ($action eq "base") {
   print "<div id=\"map\" style=\"width:100\%; height:80\%\"></div>";
 
   # Add checkboxes
-  print "<input type=\"checkbox\" id=\"isCommitte\"/>"
-  print "<span>show committe</span>"
-  print "<input type=\"checkbox\" id=\"isCandidate\"/>"
-  print "<span>show candidate</span>"
-  print "<input type=\"checkbox\" id=\"isIndividual\"/>"
-  print "<span>show individual</span>"
-  print "<div id=\"showindividual\" style=\"display:none\">Age is something</div>"
+  print "<input type=\"checkbox\" id=\"isCommitte\"/>";
+  print "<span>show committe</span>";
+  print "<input type=\"checkbox\" id=\"isCandidate\"/>";
+  print "<span>show candidate</span>";
+  print "<input type=\"checkbox\" id=\"isIndividual\"/>";
+  print "<span>show individual</span>";
+  print "<div id=\"showindividual\" style=\"display:none\">Age is something</div>";
   #
   # And a div to populate with info about nearby stuff
   #
@@ -437,6 +437,7 @@ if ($action eq "near") {
   }
 
 
+print $what{committees};
   if ($what{committees}) {
     my ($str,$error) = Committees($latne,$longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {

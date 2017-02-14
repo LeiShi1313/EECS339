@@ -28,16 +28,16 @@
 //
 $(document).ready(function() {
 	navigator.geolocation.getCurrentPosition(Start);
+	
+	// listen for checkbox
+	$('input:checkbox').live('change', function(){
+		ViewShift();
+	});	
 });
 
 // Global variables
 var map, usermark, markers = [],
 
-if(document.getElementById('isIndividual').checked) {
-	$("#showindividual").show();
-} else {
-	$("#showindividual").hide();
-}
 
 // UpdateMapById draws markers of a given category (id)
 // onto the map using the data for that id stashed within
@@ -51,7 +51,14 @@ UpdateMapById = function(id, tag) {
 //
 // first, we slice the string into an array of strings, one per
 // line / data item
+//
+//
+// try to fix an error when there is no FEC data nearby
+	if ($("#"+id).length == 0) {
+		return;
+	}
 	var rows  = $("#"+id).html().split("\n");
+
 
 // then, for each line / data item
 	for (var i=0; i<rows.length; i++) {
@@ -105,7 +112,7 @@ UpdateMap = function() {
 //
 	UpdateMapById("committee_data","COMMITTEE");
 	UpdateMapById("candidate_data","CANDIDATE");
-	//UpdateMapById("individual_data", "INDIVIDUAL");
+	UpdateMapById("individual_data", "INDIVIDUAL");
 	//UpdateMapById("opinion_data","OPINION");
 
 // When we're done with the map update, we mark the color division as
@@ -145,6 +152,9 @@ ViewShift = function() {
 	var bounds = map.getBounds(),
 		ne = bounds.getNorthEast(),
 		sw = bounds.getSouthWest();
+	var committe = '';
+	var candidate = '';
+	var individual = '';
 
 // Now we need to update our data based on those bounds
 // first step is to mark the color division as white and to say "Querying"
@@ -159,6 +169,15 @@ ViewShift = function() {
 //
 // This *initiates* the request back to the server.  When it is done,
 // the browser will call us back at the function NewData (given above)
+	if(document.getElementById('isCommitte').checked) {
+		committe = 'committees';
+	}
+	if(document.getElementById('isCandidate').checked) {
+		candidate = 'candidates';
+	}
+	if(document.getElementById('isIndividual').checked) {
+		individual = 'individuals';
+	}
 	$.get("rwb.pl",
 		{
 			act:	"near",
@@ -167,7 +186,7 @@ ViewShift = function() {
 			latsw:	sw.lat(),
 			longsw:	sw.lng(),
 			format:	"raw",
-			what:	"committees,candidates"
+			what:	$.grep([committe,candidate,individual], Boolean).join(",")
 		}, NewData);
 },
 
@@ -198,6 +217,7 @@ Start = function(location) {
 	var lat = location.coords.latitude,
 	    long = location.coords.longitude,
 	    acc = location.coords.accuracy,
+
 // Get a pointer to the "map" division of the document
 // We will put a google map into that division
 	    mapc = $("#map");
