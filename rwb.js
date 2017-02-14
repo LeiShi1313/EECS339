@@ -1,7 +1,7 @@
 /* jshint strict: false */
 /* global $: false, google: false */
 //
-// Red, White, and Blue JavaScript 
+// Red, White, and Blue JavaScript
 // for EECS 339 Project A at Northwestern University
 //
 // Originally by Peter Dinda
@@ -20,11 +20,11 @@
 //
 // When the document has finished loading, the browser
 // will invoke the function supplied here.  This
-// is an anonymous function that simply requests that the 
+// is an anonymous function that simply requests that the
 // brower determine the current position, and when it's
 // done, call the "Start" function  (which is at the end
 // of this file)
-// 
+//
 //
 $(document).ready(function() {
 	navigator.geolocation.getCurrentPosition(Start);
@@ -33,17 +33,23 @@ $(document).ready(function() {
 // Global variables
 var map, usermark, markers = [],
 
+if(document.getElementById('isIndividual').checked) {
+	$("#showindividual").show();
+} else {
+	$("#showindividual").hide();
+}
+
 // UpdateMapById draws markers of a given category (id)
-// onto the map using the data for that id stashed within 
+// onto the map using the data for that id stashed within
 // the document.
 UpdateMapById = function(id, tag) {
-// the document division that contains our data is #committees 
+// the document division that contains our data is #committees
 // if id=committees, and so on..
 // We previously placed the data into that division as a string where
 // each line is a separate data item (e.g., a committee) and
 // tabs within a line separate fields (e.g., committee name, committee id, etc)
-// 
-// first, we slice the string into an array of strings, one per 
+//
+// first, we slice the string into an array of strings, one per
 // line / data item
 	var rows  = $("#"+id).html().split("\n");
 
@@ -58,7 +64,7 @@ UpdateMapById = function(id, tag) {
 // then add them to the map.   Here the "new google.maps.Marker"
 // creates the marker and adds it to the map at the lat/long position
 // and "markers.push" adds it to our list of markers so we can
-// delete it later 
+// delete it later
 		markers.push(new google.maps.Marker({
 			map: map,
 			position: new google.maps.LatLng(lat,long),
@@ -80,7 +86,7 @@ ClearMarkers = function() {
 },
 
 //
-// UpdateMap takes data sitting in the hidden data division of 
+// UpdateMap takes data sitting in the hidden data division of
 // the document and it draws it appropriately on the map
 //
 UpdateMap = function() {
@@ -94,7 +100,7 @@ UpdateMap = function() {
 	ClearMarkers();
 
 // Then we'll draw any new markers onto the map, by category
-// Note that there additional categories here that are 
+// Note that there additional categories here that are
 // commented out...  Those might help with the project...
 //
 	UpdateMapById("committee_data","COMMITTEE");
@@ -122,7 +128,7 @@ UpdateMap = function() {
 //
 NewData = function(data) {
 // All it does is copy the data that came back from the server
-// into the data division of the document.   This is a hidden 
+// into the data division of the document.   This is a hidden
 // division we use to cache it locally
 	$("#data").html(data);
 // Now that the new data is in the document, we use it to
@@ -145,12 +151,12 @@ ViewShift = function() {
 	$("#color").css("background-color","white")
 		.html("<b><blink>Querying...("+ne.lat()+","+ne.lng()+") to ("+sw.lat()+","+sw.lng()+")</blink></b>");
 
-// Now we make a web request.   Here we are invoking rwb.pl on the 
+// Now we make a web request.   Here we are invoking rwb.pl on the
 // server, passing it the act, latne, etc, parameters for the current
 // map info, requested data, etc.
 // the browser will also automatically send back the cookie so we keep
 // any authentication state
-// 
+//
 // This *initiates* the request back to the server.  When it is done,
 // the browser will call us back at the function NewData (given above)
 	$.get("rwb.pl",
@@ -167,7 +173,7 @@ ViewShift = function() {
 
 
 //
-// If the browser determines the current location has changed, it 
+// If the browser determines the current location has changed, it
 // will call us back via this function, giving us the new location
 //
 Reposition = function(pos) {
@@ -184,11 +190,11 @@ Reposition = function(pos) {
 
 
 //
-// The start function is called back once the document has 
+// The start function is called back once the document has
 // been loaded and the browser has determined the current location
 //
 Start = function(location) {
-// Parse the current location into latitude and longitude        
+// Parse the current location into latitude and longitude
 	var lat = location.coords.latitude,
 	    long = location.coords.longitude,
 	    acc = location.coords.accuracy,
@@ -220,7 +226,7 @@ Start = function(location) {
 		.html("<b><blink>Waiting for first position</blink></b>");
 
 //
-// These lines register callbacks.   If the user scrolls the map, 
+// These lines register callbacks.   If the user scrolls the map,
 // zooms the map, etc, then our function "ViewShift" (defined above
 // will be called after the map is redrawn
 //
