@@ -28,11 +28,11 @@
 //
 $(document).ready(function() {
 	navigator.geolocation.getCurrentPosition(Start);
-	
+
 	// listen for checkbox
 	$('input:checkbox').live('change', function(){
 		ViewShift();
-	});	
+	});
 });
 
 // Global variables
@@ -77,7 +77,7 @@ UpdateMapById = function(id, tag) {
 		} else if (tag == "INDIVIDUAL") {
 			icon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
 		}
-			
+
 // then add them to the map.   Here the "new google.maps.Marker"
 // creates the marker and adds it to the map at the lat/long position
 // and "markers.push" adds it to our list of markers so we can
@@ -261,9 +261,18 @@ Start = function(location) {
 // zooms the map, etc, then our function "ViewShift" (defined above
 // will be called after the map is redrawn
 //
-	google.maps.event.addListener(map,"bounds_changed",ViewShift);
-	google.maps.event.addListener(map,"center_changed",ViewShift);
-	google.maps.event.addListener(map,"zoom_changed",ViewShift);
+	var ViewShiftWithTimeout = function() {
+		var timer;
+		return function() {
+			clearTimeout(timer);
+			timer = setTimeout(function() {
+				ViewShift();
+			}, 300);
+		}
+	}
+	google.maps.event.addListener(map,"bounds_changed",ViewShiftWithTimeout());
+	google.maps.event.addListener(map,"center_changed",ViewShiftWithTimeout());
+	google.maps.event.addListener(map,"zoom_changed",ViewShiftWithTimeout());
 
 //
 // Finally, tell the browser that if the current location changes, it
