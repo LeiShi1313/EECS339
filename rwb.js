@@ -68,6 +68,16 @@ UpdateMapById = function(id, tag) {
 			lat = cols[0],
 			long = cols[1];
 
+// different market for different FEC data
+		var icon = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+		if (tag == "COMMITTEE") {
+			icon = 'https://maps.google.com/mapfiles/ms/icons/red-dot.png';
+		} else if (tag == "CANDIDATE") {
+			icon = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
+		} else if (tag == "INDIVIDUAL") {
+			icon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+		}
+			
 // then add them to the map.   Here the "new google.maps.Marker"
 // creates the marker and adds it to the map at the lat/long position
 // and "markers.push" adds it to our list of markers so we can
@@ -75,7 +85,8 @@ UpdateMapById = function(id, tag) {
 		markers.push(new google.maps.Marker({
 			map: map,
 			position: new google.maps.LatLng(lat,long),
-			title: tag+"\n"+cols.join("\n")
+			title: tag+"\n"+cols.join("\n"),
+			icon: icon
 		}));
 
 	}

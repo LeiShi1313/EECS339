@@ -346,13 +346,12 @@ if ($action eq "base") {
   print "<div id=\"map\" style=\"width:100\%; height:80\%\"></div>";
 
   # Add checkboxes
-  print "<input type=\"checkbox\" id=\"isCommitte\"/>";
+  print "<input type=\"checkbox\" id=\"isCommitte\" checked/>";
   print "<span>show committe</span>";
   print "<input type=\"checkbox\" id=\"isCandidate\"/>";
   print "<span>show candidate</span>";
   print "<input type=\"checkbox\" id=\"isIndividual\"/>";
   print "<span>show individual</span>";
-  print "<div id=\"showindividual\" style=\"display:none\">Age is something</div>";
   #
   # And a div to populate with info about nearby stuff
   #
