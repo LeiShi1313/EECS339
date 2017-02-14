@@ -481,12 +481,63 @@ print $what{committees};
 
 
 if ($action eq "invite-user") {
-  print h2("Invite User Functionality Is Unimplemented");
+  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) { 
+    print h2('You do not have the required permissions to add users.');
+  } else {
+    if (!$run) { 
+      print start_form(-name=>'InviteUser'),
+      h2('Invite User'),
+        "Email: ", textfield(-name=>'email'), p,
+          hidden(-name=>'run',-default=>['1']),
+            hidden(-name=>'act',-default=>['invite-user']),
+              submit,
+                end_form,
+                  hr;
+    } else {
+      my $email=param('email');
+      my $error;
+      $error=UserInvite($email);
+      if ($error) { 
+        print "Can't add user because: $error";
+      } else {
+        print "Invited user $email as referred by $user\n";
+      }
+    }
+  }
+  print "<p><a href=\"rwb.pl?act=base&run=1\">Return</a></p>";
 }
 
-if ($action eq "give-opinion-data") {
-  print h2("Giving Location Opinion Data Is Unimplemented");
+if ($action eq "give-opinion-data") { 
+  my $latne = param('latne');
+  my $longne = param('longne');
+  if (!UserCan($user, "give-opinion-data")) {
+    print("lack required permissions");
+  } else {
+    if (!$run) {
+      print start_form(-name=>'GiveOpinionData'),
+      h2('Chooose color'),
+      "Color: ", textfield(-name=>'color'),
+      hidden(-name=>'run',-default=>['1']),
+      hidden(-name=>'act',-default=>['give-opinion-data']),
+      hidden(-name=>'lat',-default=>[$latne]),
+      hidden(-name=>'long',-default=>[$longne]),
+      submit,
+      end_form,
+      hr;
+
+    }
+    else {
+      my $color=param('color');
+      my $latne=param('latne');
+      my $longne=param('longne');
+    }
+    # eval { 
+    #   ExecSQL($dbuser,$dbpasswd, "insert into rwb_opinions (submitter,color,latitude,longitude) values (?,?,?,?)", undef, $user, $color, $latne, $longne);
+    # };
+
+  }
 }
+  
 
 if ($action eq "give-cs-ind-data") {
   print h2("Giving Crowd-sourced Individual Geolocations Is Unimplemented");
