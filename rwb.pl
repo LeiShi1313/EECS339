@@ -261,6 +261,15 @@ print header(-expires=>'now', -cookie=>\@outputcookies);
 print "<html style=\"height: 100\%\">";
 print "<head>";
 print "<title>Red, White, and Blue</title>";
+#
+# Google maps API, needed to draw the map
+#
+print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
+#
+# The Javascript portion of our app
+#
+print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
+print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
 print "</head>";
 
 print "<body style=\"height:100\%;margin:0\">";
@@ -274,15 +283,7 @@ print "<body style=\"height:100\%;margin:0\">";
 # defined in the css file
 #
 print "<style type=\"text/css\">\n\@import \"rwb.css\";\n</style>\n";
-#
-# Google maps API, needed to draw the map
-#
-print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
-#
-# The Javascript portion of our app
-#
-print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
-print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
+
 
 print "<center>" if !$debug;
 
