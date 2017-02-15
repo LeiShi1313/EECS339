@@ -128,6 +128,8 @@ UpdateMapById = function(id, tag) {
 			icon = 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png';
 		} else if (tag == "INDIVIDUAL") {
 			icon = 'https://maps.google.com/mapfiles/ms/icons/green-dot.png';
+		} else if (tag == "OPINION") {
+			icon = 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png';
 		}
 
 // then add them to the map.   Here the "new google.maps.Marker"
@@ -176,7 +178,7 @@ UpdateMap = function() {
 	UpdateMapById("committee_data","COMMITTEE");
 	UpdateMapById("candidate_data","CANDIDATE");
 	UpdateMapById("individual_data", "INDIVIDUAL");
-	//UpdateMapById("opinion_data","OPINION");
+	UpdateMapById("opinion_data","OPINION");
 
 // When we're done with the map update, we mark the color division as
 // Ready.
@@ -218,6 +220,7 @@ ViewShift = function() {
 	var committe = '';
 	var candidate = '';
 	var individual = '';
+	var opinion = '';
 
 // Now we need to update our data based on those bounds
 // first step is to mark the color division as white and to say "Querying"
@@ -241,6 +244,9 @@ ViewShift = function() {
 	if(document.getElementById('isIndividual').checked) {
 		individual = 'individuals';
 	}
+	if(document.getElementById('isOpinion').checked) {
+		opinion = 'opinions';
+	}
 	$.get("rwb.pl",
 		{
 			act:	"near",
@@ -249,7 +255,7 @@ ViewShift = function() {
 			latsw:	sw.lat(),
 			longsw:	sw.lng(),
 			format:	"raw",
-			what:	$.grep([committe,candidate,individual], Boolean).join(",")
+			what:	$.grep([committe,candidate,individual,opinion], Boolean).join(",")
 		}, NewData);
 },
 

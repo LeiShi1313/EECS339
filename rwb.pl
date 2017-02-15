@@ -348,6 +348,12 @@ if ($action eq "base") {
   print "<span>show candidate</span>";
   print "<input type=\"checkbox\" id=\"isIndividual\"/>";
   print "<span>show individual</span>";
+  if (UserCan($user, "query-opinion-data")) {
+    print "<input type=\"checkbox\" id=\"isOpinion\"/>";
+    print "<span>show opinions</span>";
+  } else {
+    print "no you cannot";
+  }
   #
   # And a div to populate with info about nearby stuff
   #
