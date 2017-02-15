@@ -261,15 +261,6 @@ print header(-expires=>'now', -cookie=>\@outputcookies);
 print "<html style=\"height: 100\%\">";
 print "<head>";
 print "<title>Red, White, and Blue</title>";
-#
-# Google maps API, needed to draw the map
-#
-print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
-#
-# The Javascript portion of our app
-#
-print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
-print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
 print "</head>";
 
 print "<body style=\"height:100\%;margin:0\">";
@@ -329,7 +320,15 @@ if ($action eq "login") {
 #
 #
 if ($action eq "base") {
-
+  #
+  # Google maps API, needed to draw the map
+  #
+  print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
+  #
+  # The Javascript portion of our app
+  #
+  print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
+  print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
   #
   #
   # And something to color (Red, White, or Blue)
@@ -502,17 +501,26 @@ if ($action eq "invite-user") {
   print "<p><a href=\"rwb.pl?act=base&run=1\">Return</a></p>";
 }
 
-if ($action eq "give-opinion-data") {
+if ($action eq "give-opinion-data") {#
+  # Google maps API, needed to draw the map
+  #
+  print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
+  #
+  # The Javascript portion of our app
+  #
+  print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
+  print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
   my $lat = param('lat');
   my $long = param('long');
   if (!UserCan($user, "give-opinion-data")) {
     print("lack required permissions");
   } else {
     if (!$run) {
-      my @values = ('1', '2');
+      my @values = ('-1', '0', '1');
       my %labels = (
-        '1' => 'red',
-        '2' => 'blue',
+        '-1' => 'red',
+        '1' => 'blue',
+        '0' => 'neutral'
       );
       print start_form(-name=>'GiveOpinionData'),
       h2('Choose your color'),
@@ -520,7 +528,7 @@ if ($action eq "give-opinion-data") {
       popup_menu(
         -name => 'color',
         -values => \@values,
-        -default => '2',
+        -default => '1',
         -labels => \%labels
       ),
       hidden(-name=>'run',-default=>['1']),
