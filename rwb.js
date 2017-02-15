@@ -27,17 +27,69 @@
 //
 //
 $(document).ready(function() {
-	navigator.geolocation.getCurrentPosition(Start);
-
-	// listen for checkbox
-	$('input:checkbox').live('change', function(){
-		ViewShift();
-	});
+	var act = getUrlParameter('act');
+	if (act == 'base' || act == 'near') {
+		navigator.geolocation.getCurrentPosition(Start);
+		// listen for checkbox
+		$('input:checkbox').live('change', function(){
+			ViewShift();
+		});
+	} else if (act == 'give-opinion-data') {
+		$("input[name=.submit]").attr('disabled','disabled');
+		GetCurrentLocationByParmOrAPI();
+	}
 });
 
 // Global variables
 var map, usermark, markers = [],
 
+getUrlParameter = function getUrlParameter(sParam) {
+  var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+      sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+  for (i = 0; i < sURLVariables.length; i++) {
+    sParameterName = sURLVariables[i].split('=');
+
+    if (sParameterName[0] === sParam) {
+      return sParameterName[1] === undefined ? true : sParameterName[1];
+    }
+  }
+},
+
+GetCurrentLocationByParmOrAPI = function() {
+	var lat = getUrlParameter('lat'),
+		 long = getUrlParameter('long');
+	if (lat && long) {
+		ChangeFormByLocation(lat, long);
+	} else {
+		navigator.geolocation.getCurrentPosition(function(location) {
+			lat = location.coords.latitude,
+			long = location.coords.longitude;
+			ChangeFormByLocation(lat, long);
+		});
+	}
+},
+// ChangeFormByLocation change the input value by user's location
+ChangeFormByLocation = function(lat, long) {
+	$('input[name=lat]').val(lat);
+	$('input[name=long]').val(long);
+	$("input[name=.submit]").removeAttr('disabled');
+	var mapUrl = "https://maps.googleapis.com/maps/api/geocode/json";
+	mapUrl += "?latlng="+lat+','+long+'&sensor=true';
+	$.ajax({
+	  dataType: "json",
+	  url: mapUrl,
+	  success: function(data) {
+	    console.log(data['results'][0]);
+			var span_text = $("#address-info").text();
+			$("#address-info").text("You are at "+data['results'][0]['formatted_address']);
+			$('<label>', {id: "you-are-for", text: span_text}).insertAfter("#address-info");
+			$('<br>').insertBefore("#you-are-for");
+	  }
+	});
+},
 
 // UpdateMapById draws markers of a given category (id)
 // onto the map using the data for that id stashed within
@@ -233,6 +285,12 @@ Start = function(location) {
 // We will put a google map into that division
 	    mapc = $("#map");
 
+	if (lat && long) {
+		var a_href = $("#give-opinion-data").attr('href');
+		if (a_href) {
+			$("#give-opinion-data").attr('href', a_href+"&lat="+lat+"&long="+long);
+		}
+	}
 // Create a new google map centered at the current location
 // and place it into the map division of the document
 	map = new google.maps.Map(mapc[0],

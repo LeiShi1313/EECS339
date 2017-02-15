@@ -274,7 +274,15 @@ print "<body style=\"height:100\%;margin:0\">";
 # defined in the css file
 #
 print "<style type=\"text/css\">\n\@import \"rwb.css\";\n</style>\n";
-
+#
+# Google maps API, needed to draw the map
+#
+print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
+#
+# The Javascript portion of our app
+#
+print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
+print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
 
 print "<center>" if !$debug;
 
@@ -320,18 +328,6 @@ if ($action eq "login") {
 #
 #
 if ($action eq "base") {
-  #
-  # Google maps API, needed to draw the map
-  #
-  print "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js\" type=\"text/javascript\"></script>";
-  print "<script src=\"https://maps.google.com/maps/api/js\" type=\"text/javascript\"></script>";
-
-  #
-  # The Javascript portion of our app
-  #
-  print "<script type=\"text/javascript\" src=\"rwb.js\"> </script>";
-
-
 
   #
   #
@@ -377,7 +373,7 @@ if ($action eq "base") {
   } else {
     print "<p>You are logged in as $user and can do the following:</p>";
     if (UserCan($user,"give-opinion-data")) {
-      print "<p><a href=\"rwb.pl?act=give-opinion-data\">Give Opinion Of Current Location</a></p>";
+      print "<p><a id=\"give-opinion-data\" href=\"rwb.pl?act=give-opinion-data\">Give Opinion Of Current Location</a></p>";
     }
     if (UserCan($user,"give-cs-ind-data")) {
       print "<p><a href=\"rwb.pl?act=give-cs-ind-data\">Geolocate Individual Contributors</a></p>";
@@ -435,8 +431,6 @@ if ($action eq "near") {
     map {$what{$_}=1} split(/\s*,\s*/,$whatparam);
   }
 
-
-print $what{committees};
   if ($what{committees}) {
     my ($str,$error) = Committees($latne,$longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {
@@ -481,10 +475,10 @@ print $what{committees};
 
 
 if ($action eq "invite-user") {
-  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) { 
+  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) {
     print h2('You do not have the required permissions to add users.');
   } else {
-    if (!$run) { 
+    if (!$run) {
       print start_form(-name=>'InviteUser'),
       h2('Invite User'),
         "Email: ", textfield(-name=>'email'), p,
@@ -497,7 +491,7 @@ if ($action eq "invite-user") {
       my $email=param('email');
       my $error;
       $error=UserInvite($email);
-      if ($error) { 
+      if ($error) {
         print "Can't add user because: $error";
       } else {
         print "Invited user $email as referred by $user\n";
@@ -507,20 +501,31 @@ if ($action eq "invite-user") {
   print "<p><a href=\"rwb.pl?act=base&run=1\">Return</a></p>";
 }
 
-if ($action eq "give-opinion-data") { 
-  my $latne = param('latne');
-  my $longne = param('longne');
+if ($action eq "give-opinion-data") {
+  my $lat = param('lat');
+  my $long = param('long');
   if (!UserCan($user, "give-opinion-data")) {
     print("lack required permissions");
   } else {
     if (!$run) {
+      my @values = ('1', '2');
+      my %labels = (
+        '1' => 'red',
+        '2' => 'blue',
+      );
       print start_form(-name=>'GiveOpinionData'),
-      h2('Chooose color'),
-      "Color: ", textfield(-name=>'color'),
+      h2('Choose your color'),
+      label({-id=>'address-info'}, "You are for: "),
+      popup_menu(
+        -name => 'color',
+        -values => \@values,
+        -default => '2',
+        -labels => \%labels
+      ),
       hidden(-name=>'run',-default=>['1']),
       hidden(-name=>'act',-default=>['give-opinion-data']),
-      hidden(-name=>'lat',-default=>[$latne]),
-      hidden(-name=>'long',-default=>[$longne]),
+      hidden(-name=>'lat',-default=>[$lat]),
+      hidden(-name=>'long',-default=>[$long]),
       submit,
       end_form,
       hr;
@@ -528,16 +533,23 @@ if ($action eq "give-opinion-data") {
     }
     else {
       my $color=param('color');
-      my $latne=param('latne');
-      my $longne=param('longne');
+      my $lat=param('lat');
+      my $long=param('long');
+      if (!$lat || !$long) {
+        print("lack current location");
+      } else {
+        my $error = OpinionAdd($user,$color,$lat,$long);
+        if ($error) {
+          print("Add opinion failed because: $error");
+        } else {
+          print("Opinion added.")
+        }
+      }
     }
-    # eval { 
-    #   ExecSQL($dbuser,$dbpasswd, "insert into rwb_opinions (submitter,color,latitude,longitude) values (?,?,?,?)", undef, $user, $color, $latne, $longne);
-    # };
-
   }
+  print "<p><a href=\"rwb.pl?act=base&run=1\">Return</a></p>";
 }
-  
+
 
 if ($action eq "give-cs-ind-data") {
   print h2("Giving Crowd-sourced Individual Geolocations Is Unimplemented");
@@ -556,6 +568,7 @@ if ($action eq "add-user") {
     print h2('You do not have the required permissions to add users.');
   } else {
     if (!$run) {
+      print
       print start_form(-name=>'AddUser'),
 	h2('Add User'),
 	  "Name: ", textfield(-name=>'name'),
@@ -938,6 +951,12 @@ sub UserAdd {
   return $@;
 }
 
+sub OpinionAdd {
+  eval { ExecSQL($dbuser, $dbpasswd,
+    "insert into rwb_opinions (submitter, color, latitude, longitude) values (?,?,?,?)",undef,@_);
+  };
+  return $@;
+}
 #
 # Delete a user
 # returns false on success, $error string on failure
