@@ -480,32 +480,65 @@ if ($action eq "near") {
 }
 
 
-if ($action eq "invite-user") {
-  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) {
+if ($action eq "invite-user") { 
+
+  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) { 
     print h2('You do not have the required permissions to add users.');
   } else {
-    if (!$run) {
+    my @permissionsList;
+    eval {
+      @permissionsList = ExecSQL($dbuser, $dbpasswd, "select action from rwb_permissions where name='$user'", "COL");
+    };
+    if (!$run) { 
       print start_form(-name=>'InviteUser'),
       h2('Invite User'),
-        "Email: ", textfield(-name=>'email'), p,
-          hidden(-name=>'run',-default=>['1']),
-            hidden(-name=>'act',-default=>['invite-user']),
-              submit,
-                end_form,
-                  hr;
+      "Name : ", textfield(-name=>'name'), p,
+      "Email: ", textfield(-name=>'email'), p,
+      "Password: ", textfield(-name=>'password'), p,
+      hidden(-name=>'run',-default=>['1']),
+      hidden(-name=>'act',-default=>['invite-user']),
+      checkbox_group(-name=>'permList', -multiple=>'true', -values=>[@permissionsList]),
+      submit,
+      end_form,
+      hr;
+      my $username;
+      my $username = param('name');
+      print('select permissions: $name ');
+    
+
     } else {
+      my @testList = param('permList');
+      foreach my $action (@testList) {
+        print "action is $action";
+      }
+      my $name=param('name');
       my $email=param('email');
+      my $password=param('password');
       my $error;
-      $error=UserInvite($email);
-      if ($error) {
+
+      $error=UserAdd($name,$password,$email,$user);
+      if ($error) { 
         print "Can't add user because: $error";
       } else {
-        print "Invited user $email as referred by $user\n";
+        print "Added user $name $email as referred by $user\n";
       }
+
+      foreach my $action (@testList) {
+         my $error2;
+         $error2 = GiveUserPerm($name, $action);
+          if ($error2) {
+             print "Can't add perm because $error2";
+          } else {
+             print "Added perm $action to $name";
+          }
+      }
+
     }
+
   }
   print "<p><a href=\"rwb.pl?act=base&run=1\">Return</a></p>";
 }
+
 
 if ($action eq "give-opinion-data") {#
   # Google maps API, needed to draw the map
