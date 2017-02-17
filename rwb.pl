@@ -855,6 +855,55 @@ sub Committees {
   }
 }
 
+sub agcomm{
+  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my @rep_comm;
+  my @dem_comm;
+  my @rep_cand;
+  my @dem_cand;
+  my $LIMIT = 5;
+  my $INCREM = 0.5;
+
+
+  do{
+    eval{
+      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cmte_id_to_geo\
+      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle = $cycle and latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+    };
+    eval{
+      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cmte_id_to_geo\
+      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne);
+    };
+    eval{
+      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cmte_id_to_geo\
+      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne;
+    };
+    eval{
+      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cmte_id_to_geo\
+      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude>? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne);
+    };
+
+      count = @rep_comm[0][0] +  @rep_cand[0][0]+ @dem_comm[0][0]  + @dem_cand[0][0];
+      $latsw += $INCREM;
+      $longsw +=  $INCREM;
+      $latne += $INCREM;
+      $longne += $INCREM;
+
+    } while(count < LIMIT)
+
+    my $rep_total = @rep_comm[0][1] + @rep_cand[0][1];
+    my $dem_total = @dem_comm[0][1] + @dem_cand[0][1];
+    my $color;
+
+    if(rep_total > dem_total){
+      $color = 'blue';
+    }
+    else if(rep_total < dem_total){
+      $color = 'red';
+    }else{
+      $color = 'white';
+    };
+}
 
 #
 # Generate a table of nearby candidates
@@ -880,6 +929,8 @@ sub Candidates {
     }
   }
 }
+
+
 
 
 #
@@ -911,6 +962,45 @@ sub Individuals {
 }
 
 
+sub aggindividuals{
+  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my @rep_indiv;
+  my @dem_indiv;
+  my $LIMIT = 5;
+  my $INCREM = 0.5;
+
+
+  do{
+    eval{
+      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo\
+      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle = $cycle and latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+    };
+    eval{
+      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo\
+      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne;
+    };
+
+      count = @rep_indiv[0][0] +  @dem_indiv[0][0];
+      $latsw += $INCREM;
+      $longsw +=  $INCREM;
+      $latne += $INCREM;
+      $longne += $INCREM;
+
+    } while(count < LIMIT)
+
+    my $color;
+
+    if(rep_indiv > dem_indiv){
+      $color = 'blue';
+    }
+    else if(rep_indiv < dem_indiv){
+      $color = 'red';
+    }else{
+      $color = 'white';
+    };
+}
+
+
 #
 # Generate a table of nearby opinions
 #
@@ -935,6 +1025,39 @@ sub Opinions {
       return (MakeRaw("opinion_data","2D",@rows),$@);
     }
   }
+}
+
+
+sub aggopinions{
+  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my $LIMIT = 5;
+  my $INCREM = 0.5;
+  my @opi;
+
+
+  do{
+    eval{
+      @opi = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(color), AVg(color), STDDEV(color) FROM rwb_opinions WHERE latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+    };
+
+      count = @opi[0][0];
+      $latsw += $INCREM;
+      $longsw +=  $INCREM;
+      $latne += $INCREM;
+      $longne += $INCREM;
+
+    } while(count < LIMIT)
+
+    my $color;
+
+    if(@opi[0][1] > 0){
+      $color = 'blue';
+    }
+    else if(@opi[0][1] < 0){
+      $color = 'red';
+    }else{
+      $color = 'white';
+    };
 }
 
 
