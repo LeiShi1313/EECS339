@@ -870,16 +870,16 @@ sub aggcomm{
 
   do{
     eval{
-      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?", undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation = 'REP' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?", undef,$cycle,$latsw,$latne, $longsw,$longne);
     };
     eval{
-      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation= 'REP' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation= 'DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation='DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
     };
 
       $count = $rep_comm[0][0] +  $rep_cand[0][0]+ $dem_comm[0][0]  + $dem_cand[0][0];
@@ -973,10 +973,10 @@ sub aggindividuals{
 
   do{
     eval{
-      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle =? and latitude<? and latitude>? and longitude <? and longitude >?", undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation= 'REP' and cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle =? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation='DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
     };
 
       $count = $rep_indiv[0][0] +  $dem_indiv[0][0];
@@ -1040,7 +1040,7 @@ sub aggopinions{
 
   do{
     eval{
-      @opi = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(color), AVg(color), STDDEV(color) FROM rwb_opinions WHERE latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+      @opi = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(color), AVg(color), STDDEV(color) FROM rwb_opinions WHERE latitude>? and latitude<? and longitude> ? and longitude<?", undef,$latsw,$latne, $longsw,$longne);
     };
 
       $count = $opi[0][0];
