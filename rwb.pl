@@ -34,7 +34,7 @@
 #
 # database input and output is paired into the two arrays noted
 #
-my $debug=0; # default - will be overriden by a form parameter or cookie
+my $debug=1; # default - will be overriden by a form parameter or cookie
 my @sqlinput=();
 my @sqloutput=();
 
@@ -439,6 +439,7 @@ if ($action eq "near") {
 
   if ($what{committees}) {
     my ($str,$error) = Committees($latne,$longne,$latsw,$longsw,$cycle,$format);
+    aggcomm($latne, $longne,$latsw, $longsw, $cycle, $format);
     if (!$error) {
       if ($format eq "table") {
 	print "<h2>Nearby committees</h2>$str";
@@ -459,6 +460,7 @@ if ($action eq "near") {
   }
   if ($what{individuals}) {
     my ($str,$error) = Individuals($latne,$longne,$latsw,$longsw,$cycle,$format);
+    aggindividuals($latne, $longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {
       if ($format eq "table") {
 	print "<h2>Nearby individuals</h2>$str";
@@ -469,6 +471,7 @@ if ($action eq "near") {
   }
   if ($what{opinions}) {
     my ($str,$error) = Opinions($latne,$longne,$latsw,$longsw,$cycle,$format);
+    aggopinions($latne, $longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {
       if ($format eq "table") {
 	print "<h2>Nearby opinions</h2>$str";
@@ -502,7 +505,7 @@ if ($action eq "invite-user") {
       end_form,
       hr;
       my $username;
-      my $username = param('name');
+      $username = param('name');
       print('select permissions: $name ');
     
 
@@ -856,14 +859,14 @@ sub Committees {
 }
 
 sub aggcomm{
-  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my ($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my @rep_comm;
   my @dem_comm;
   my @rep_cand;
   my @dem_cand;
   my $LIMIT = 5;
   my $INCREM = 0.5;
-
+  my $count = 0;
 
   do{
     eval{
@@ -873,7 +876,7 @@ sub aggcomm{
       @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne;
+      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
       @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
@@ -885,7 +888,7 @@ sub aggcomm{
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while($count <$LIMIT)
+  } while($count <$LIMIT);
 
     my $rep_total = $rep_comm[0][1] + $rep_cand[0][1];
     my $dem_total = $dem_comm[0][1] + $dem_cand[0][1];
@@ -894,11 +897,11 @@ sub aggcomm{
     if($rep_total > $dem_total){
       $color = 'blue';
     }
-    else if($rep_total < $dem_total){
+    elsif($rep_total < $dem_total){
       $color = 'red';
     }else{
       $color = 'white';
-    };
+    }
 
     create_table($rep_total, $dem_total, "Committees", $color);
 }
@@ -961,19 +964,19 @@ sub Individuals {
 
 
 sub aggindividuals{
-  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my @rep_indiv;
   my @dem_indiv;
   my $LIMIT = 5;
   my $INCREM = 0.5;
-
+  my $count = 0;
 
   do{
     eval{
       @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle =? and latitude<? and latitude>? and longitude <? and longitude >?", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle =? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne;
+      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle =? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
 
       $count = $rep_indiv[0][0] +  $dem_indiv[0][0];
@@ -982,18 +985,20 @@ sub aggindividuals{
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while($count < $LIMIT)
+  } while($count < $LIMIT);
 
     my $color;
+  my $rep_indiv;
+  my $dem_indiv;
 
     if($rep_indiv > $dem_indiv){
       $color = 'blue';
     }
-    else if($rep_indiv < $dem_indiv){
+    elsif($rep_indiv < $dem_indiv){
       $color = 'red';
     }else{
       $color = 'white';
-    };
+    }
 
     create_table($rep_indiv[0][1], $dem_indiv[0][1], "Individuals", $color);
 }
@@ -1027,11 +1032,11 @@ sub Opinions {
 
 
 sub aggopinions{
-  my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
+  my($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my $LIMIT = 5;
   my $INCREM = 0.5;
   my @opi;
-
+  my $count = 0;
 
   do{
     eval{
@@ -1044,18 +1049,18 @@ sub aggopinions{
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while($count < $LIMIT)
+  } while($count < $LIMIT);
 
     my $color;
 
     if($opi[0][1] > 0){
       $color = 'blue';
     }
-    else if($opi[0][1] < 0){
+    elsif($opi[0][1] < 0){
       $color = 'red';
     }else{
       $color = 'white';
-    };
+    }
 
     create_table_opinion($opi[0][1], $opi[0][2], "Opinions", $color);
 }
@@ -1078,7 +1083,6 @@ sub create_table{
     print "</tr>";
     print "</table>";
     print "</div>"; 
-    }
 }
 
 sub create_table_opinion{
