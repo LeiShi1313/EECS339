@@ -77,8 +77,8 @@ use Time::ParseDate;
 #
 # You need to override these for access to your database
 #
-my $dbuser="lsh9920";
-my $dbpasswd="zFe81sttE";
+my $dbuser="sjx371";
+my $dbpasswd="zgwxnVN56";
 
 
 #
@@ -855,7 +855,7 @@ sub Committees {
   }
 }
 
-sub agcomm{
+sub aggcomm{
   my($latne, $longne, $latsw, $longsq, $cycle, $format) = @_;
   my @rep_comm;
   my @dem_comm;
@@ -867,42 +867,40 @@ sub agcomm{
 
   do{
     eval{
-      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cmte_id_to_geo\
-      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle = $cycle and latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cmte_id_to_geo\
-      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne);
+      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cmte_id_to_geo\
-      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne;
+      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne;
     };
     eval{
-      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cmte_id_to_geo\
-      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude>? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne);
+      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle=? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
 
-      count = @rep_comm[0][0] +  @rep_cand[0][0]+ @dem_comm[0][0]  + @dem_cand[0][0];
-      $latsw += $INCREM;
-      $longsw +=  $INCREM;
+      $count = $rep_comm[0][0] +  $rep_cand[0][0]+ $dem_comm[0][0]  + $dem_cand[0][0];
+      $latsw -= $INCREM;
+      $longsw -=  $INCREM;
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while(count < LIMIT)
+    } while($count <$LIMIT)
 
-    my $rep_total = @rep_comm[0][1] + @rep_cand[0][1];
-    my $dem_total = @dem_comm[0][1] + @dem_cand[0][1];
+    my $rep_total = $rep_comm[0][1] + $rep_cand[0][1];
+    my $dem_total = $dem_comm[0][1] + $dem_cand[0][1];
     my $color;
 
-    if(rep_total > dem_total){
+    if($rep_total > $dem_total){
       $color = 'blue';
     }
-    else if(rep_total < dem_total){
+    else if($rep_total < $dem_total){
       $color = 'red';
     }else{
       $color = 'white';
     };
+
+    create_table($rep_total, $dem_total, "Committees", $color);
 }
 
 #
@@ -972,32 +970,32 @@ sub aggindividuals{
 
   do{
     eval{
-      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo\
-      WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle = $cycle and latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
+      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('REP','Rep','rep') and cycle =? and latitude<? and latitude>? and longitude <? and longitude >?", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     eval{
-      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo\
-      WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle = $cycle AND latitude<? and latitude> ? and longitude < ? and longitude >?",undef,$latsw,$latne, $longsw,$longne;
+      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.comittee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation IN ('DEM','Dem','dem') AND cycle =? AND latitude<? and latitude>? and longitude <? and longitude >?",undef,$cycle, $latsw,$latne, $longsw,$longne;
     };
 
-      count = @rep_indiv[0][0] +  @dem_indiv[0][0];
-      $latsw += $INCREM;
-      $longsw +=  $INCREM;
+      $count = $rep_indiv[0][0] +  $dem_indiv[0][0];
+      $latsw -= $INCREM;
+      $longsw -=  $INCREM;
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while(count < LIMIT)
+    } while($count < $LIMIT)
 
     my $color;
 
-    if(rep_indiv > dem_indiv){
+    if($rep_indiv > $dem_indiv){
       $color = 'blue';
     }
-    else if(rep_indiv < dem_indiv){
+    else if($rep_indiv < $dem_indiv){
       $color = 'red';
     }else{
       $color = 'white';
     };
+
+    create_table($rep_indiv[0][1], $dem_indiv[0][1], "Individuals", $color);
 }
 
 
@@ -1040,26 +1038,67 @@ sub aggopinions{
       @opi = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(color), AVg(color), STDDEV(color) FROM rwb_opinions WHERE latitude<? and latitude> ? and longitude < ? and longitude >?", undef,$latsw,$latne, $longsw,$longne);
     };
 
-      count = @opi[0][0];
-      $latsw += $INCREM;
-      $longsw +=  $INCREM;
+      $count = $opi[0][0];
+      $latsw -= $INCREM;
+      $longsw -=  $INCREM;
       $latne += $INCREM;
       $longne += $INCREM;
 
-    } while(count < LIMIT)
+    } while($count < $LIMIT)
 
     my $color;
 
-    if(@opi[0][1] > 0){
+    if($opi[0][1] > 0){
       $color = 'blue';
     }
-    else if(@opi[0][1] < 0){
+    else if($opi[0][1] < 0){
       $color = 'red';
     }else{
       $color = 'white';
     };
+
+    create_table_opinion($opi[0][1], $opi[0][2], "Opinions", $color);
 }
 
+
+sub create_table{
+	my($rep, $dem, $name, $color) = @_;
+	my $sum = $rep + $dem;
+	print "<div id = \"$name\">";
+    print "<table style=\"background-color:$color;\">";
+    print"<tr>";
+    print "<th>".$name . " Summary Sum of money</th>";
+    print "<th> Republican </th>";
+    print "<th> Democratic </th>";
+    print "</tr>";
+	print "<tr>";
+    print "<td>".$sum."</td>";
+    print "<td>".$rep."</td>";
+    print "<td>".$dem."</td>";
+    print "</tr>";
+    print "</table>";
+    print "</div>"; 
+    }
+}
+
+sub create_table_opinion{
+	my($avg, $std, $name, $color) = @_;
+	print "<div id = \"$name\">";
+    print "<table style=\"background-color:$color;\">";
+    print"<tr>";
+    print "<th>".$name . " Summary</th>";
+    print "<th> Average </th>";
+    print "<th> Standard Deviation </th>";
+    print "</tr>";
+    print "<tr>";
+    print "<td></td>";
+    print "<td>".$avg."</td>";
+    print "<td>".$std."</td>";
+    print "</tr>";
+    print "</table>";
+    print "</div>"; 
+
+}
 
 #
 # Generate a table of available permissions
