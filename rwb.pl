@@ -341,6 +341,17 @@ if ($action eq "base") {
   #
   print "<div id=\"map\" style=\"width:100\%; height:80\%\"></div>";
 
+  # Add cycle selection
+  #
+  my @cycle_list = ('7980', '8182', '8384', '8586', '8788', '8990', '9192', '9394', '9596', '9798', '9900', '0102', '0304', '0506', '0708', '0910', '1112', '1314');
+  print "<span>cycle: </span>";
+  print "<select name=\"cycle\" id=\"cycle\">";
+  foreach my $year (@cycle_list) {
+    print "<option value=$year>$year</option>";
+  }
+  print "</select>";
+  
+
   # Add checkboxes
   print "<input type=\"checkbox\" id=\"isCommitte\" checked/>";
   print "<span>show committe</span>";

@@ -34,6 +34,9 @@ $(document).ready(function() {
 		$('input:checkbox').live('change', function(){
 			ViewShift();
 		});
+		$('#cycle').live('change', function() {
+			ViewShift();
+		});
 	} else if (act == 'give-opinion-data') {
 		$("input[name=.submit]").attr('disabled','disabled');
 		GetCurrentLocationByParmOrAPI();
@@ -208,6 +211,16 @@ NewData = function(data) {
 	UpdateMap();
 },
 
+ViewShiftWithTimeout = function() {
+	var timer;
+	return function() {
+		clearTimeout(timer);
+		timer = setTimeout(function() {
+			ViewShift();
+		}, 300);
+	}
+},
+
 //
 // The Google Map calls us back at ViewShift when some aspect
 // of the map changes (for example its bounds, zoom, etc)
@@ -254,6 +267,7 @@ ViewShift = function() {
 			longne:	ne.lng(),
 			latsw:	sw.lat(),
 			longsw:	sw.lng(),
+			cycle: $('#cycle').val(),
 			format:	"raw",
 			what:	$.grep([committe,candidate,individual,opinion], Boolean).join(",")
 		}, NewData);
@@ -325,15 +339,6 @@ Start = function(location) {
 // zooms the map, etc, then our function "ViewShift" (defined above
 // will be called after the map is redrawn
 //
-	var ViewShiftWithTimeout = function() {
-		var timer;
-		return function() {
-			clearTimeout(timer);
-			timer = setTimeout(function() {
-				ViewShift();
-			}, 300);
-		}
-	}
 	google.maps.event.addListener(map,"bounds_changed",ViewShiftWithTimeout());
 	google.maps.event.addListener(map,"center_changed",ViewShiftWithTimeout());
 	google.maps.event.addListener(map,"zoom_changed",ViewShiftWithTimeout());
