@@ -469,32 +469,39 @@ if ($action eq "near") {
     my ($str,$error) = Candidates($latne,$longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {
       if ($format eq "table") {
-	print "<h2>Nearby candidates</h2>$str";
+	       print "<h2>Nearby candidates</h2>$str";
       } else {
-	print $str;
+	       print $str;
       }
     }
   }
   if ($what{individuals}) {
     my ($str,$error) = Individuals($latne,$longne,$latsw,$longsw,$cycle,$format);
-    aggindividuals($latne, $longne,$latsw,$longsw,$cycle,$format);
+
     if (!$error) {
       if ($format eq "table") {
-	print "<h2>Nearby individuals</h2>$str";
+	       print "<h2>Nearby individuals</h2>$str";
       } else {
-	print $str;
+	       print $str;
       }
+    }
+    my ($str1, $error1) = aggindividuals($latne, $longne,$latsw,$longsw,$cycle,$format);
+    if (!$error1) {
+      print $str1;
     }
   }
   if ($what{opinions}) {
     my ($str,$error) = Opinions($latne,$longne,$latsw,$longsw,$cycle,$format);
-    aggopinions($latne, $longne,$latsw,$longsw,$cycle,$format);
     if (!$error) {
       if ($format eq "table") {
-	print "<h2>Nearby opinions</h2>$str";
+	       print "<h2>Nearby opinions</h2>$str";
       } else {
-	print $str;
+	       print $str;
       }
+    }
+    my ($str1, $error1) = aggopinions($latne, $longne,$latsw,$longsw,$cycle,$format);
+    if (!$error1) {
+      print $str1;
     }
   }
 }
@@ -879,7 +886,7 @@ sub aggcomm{
   my ($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my @rows;
   my $LIMIT = 2;
-  my $INCREM = 0.5;
+  my $INCREM = 0.05;
   my $rowcount = 0;
 
     my $sqlstr = "select a.cmte_pty_affiliation, (NVL(comm,0)+NVL(cand,0)) as amount from (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as comm FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) a left join (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as cand FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) b on a.cmte_pty_affiliation=b.cmte_pty_affiliation where a.cmte_pty_affiliation is not null order by amount desc";
@@ -959,42 +966,24 @@ sub Individuals {
 
 sub aggindividuals{
   my($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
-  my @rep_indiv;
-  my @dem_indiv;
-  my $LIMIT = 5;
-  my $INCREM = 0.5;
-  my $count = 0;
+  my @indiv;
+  my $LIMIT = 2;
+  my $INCREM = 0.05;
+  my $rowcount = 0;
 
   do{
-    eval{
-      @rep_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation= 'REP' and cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?", undef,$cycle, $latsw,$latne, $longsw,$longne);
+    eval {
+      @indiv = ExecSQL($dbuser, $dbpasswd, "SELECT cmte_pty_affiliation, SUM(Transaction_amnt) as total FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cycle=? AND latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation order by total desc", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
-    eval{
-      @dem_indiv = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cmte_pty_affiliation='DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
-    };
+    $rowcount = @indiv;
+    $latsw -= $INCREM;
+    $longsw -= $INCREM;
+    $latne += $INCREM;
+    $longne += $INCREM;
+  } while($rowcount < $LIMIT);
 
-      $count = $rep_indiv[0][0] +  $dem_indiv[0][0];
-      $latsw -= $INCREM;
-      $longsw -=  $INCREM;
-      $latne += $INCREM;
-      $longne += $INCREM;
-
-  } while($count < $LIMIT);
-
-    my $color;
-  my $rep_indiv;
-  my $dem_indiv;
-
-    if($rep_indiv > $dem_indiv){
-      $color = 'blue';
-    }
-    elsif($rep_indiv < $dem_indiv){
-      $color = 'red';
-    }else{
-      $color = 'white';
-    }
-
-    create_table($rep_indiv[0][1], $dem_indiv[0][1], "Individuals", $color);
+  return (MakeTable("individual_transaction", "2D",
+    ["Party", "Amount"], @indiv), $@);
 }
 
 

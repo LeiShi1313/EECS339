@@ -188,26 +188,47 @@ UpdateMap = function() {
 // Ready.
 	color.html("Ready");
 
-	var $data_table = $("#committe_transaction_data");
-	if ($data_table) {
-		$data_table.remove();
+	var $committe_transaction_data_table = $("#committe_transaction_data");
+	if ($committe_transaction_data_table) {
+		$committe_transaction_data_table.remove();
 	}
-	$data_table = $("#committe_transaction").clone().attr('id', 'committe_transaction_data');
-	$("#data").before($data_table);
-	$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Committe Transaction Data</p></td></tr></thead>');
+	var $individual_transaction_data_table = $("#individual_transaction_data");
+	if ($individual_transaction_data_table) {
+		$individual_transaction_data_table.remove();
+	}
+	if ($("#committe_transaction")) {
+		$committe_transaction_data_table = $("#committe_transaction").clone().attr('id', 'committe_transaction_data');
+		$("#data").before($committe_transaction_data_table);
+		$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Committe Transaction Data</p></td></tr></thead>');
+	}
+	if ($("#individual_transaction")) {
+		$individual_transaction_data_table = $("#individual_transaction").clone().attr('id', 'individual_transaction_data');
+		$("#data").before($individual_transaction_data_table);
+		$("#individual_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Individual Transaction Data</p></td></tr></thead>');
+	}
+
 	// $("#committe_transaction").appendTo("#color");
 // The hand-out code doesn't actually set the color according to the data
 // (that's the student's job), so we'll just assign it a random color for now
 	var firstRow = $("#committe_transaction tr:eq(1) td:eq(0)").text();
 	if (firstRow == 'DEM') {
 		color.css("background-color", "blue");
-		$data_table.css("background-color", "blue");
+		$("#committe_transaction_data").css("background-color", "blue");
 	} else if (firstRow == 'REP') {
 		color.css("background-color", "red");
-		$data_table.css("background-color", "red");
+		$("#committe_transaction_data").css("background-color", "red");
 	} else {
 		color.css("background-color", "white");
-		$data_table.css("background-color", "white");
+		$("#committe_transaction_data").css("background-color", "white");
+	}
+
+	var firstRow = $("#individual_transaction tr:eq(1) td:eq(0)").text();
+	if (firstRow == 'DEM') {
+		$("#individual_transaction_data").css("background-color", "blue");
+	} else if (firstRow == 'REP') {
+		$("#individual_transaction_data").css("background-color", "red");
+	} else {
+		$("#individual_transaction_data").css("background-color", "white");
 	}
 
 },
