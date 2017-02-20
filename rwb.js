@@ -188,17 +188,26 @@ UpdateMap = function() {
 // Ready.
 	color.html("Ready");
 
-	color.css("height", "");
-	$("#committe_transaction").appendTo("#color");
+	var $data_table = $("#committe_transaction_data");
+	if ($data_table) {
+		$data_table.remove();
+	}
+	$data_table = $("#committe_transaction").clone().attr('id', 'committe_transaction_data');
+	$("#data").before($data_table);
+	$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Committe Transaction Data</p></td></tr></thead>');
+	// $("#committe_transaction").appendTo("#color");
 // The hand-out code doesn't actually set the color according to the data
 // (that's the student's job), so we'll just assign it a random color for now
 	var firstRow = $("#committe_transaction tr:eq(1) td:eq(0)").text();
 	if (firstRow == 'DEM') {
 		color.css("background-color", "blue");
+		$data_table.css("background-color", "blue");
 	} else if (firstRow == 'REP') {
 		color.css("background-color", "red");
+		$data_table.css("background-color", "red");
 	} else {
 		color.css("background-color", "white");
+		$data_table.css("background-color", "white");
 	}
 
 },

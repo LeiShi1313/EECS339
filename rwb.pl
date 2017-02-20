@@ -333,13 +333,7 @@ if ($action eq "base") {
   #
   # And something to color (Red, White, or Blue)
   #
-  print "<div id=\"color\" style=\"width:100\%; height:10\%\"></div>";
-
-  #
-  #
-  # And a map which will be populated later
-  #
-  print "<div id=\"map\" style=\"width:100\%; height:80\%\"></div>";
+  print "<div id=\"color\" style=\"width:100\%;\"></div>";
 
   # Add cycle selection
   #
@@ -362,9 +356,14 @@ if ($action eq "base") {
   if (UserCan($user, "query-opinion-data")) {
     print "<input type=\"checkbox\" id=\"isOpinion\"/>";
     print "<span>show opinions</span>";
-  } else {
-    print "no you cannot";
   }
+  #
+  #
+  # And a map which will be populated later
+  #
+  print "<div id=\"map\" style=\"width:100\%; height:80\%\"></div>";
+
+
   #
   # And a div to populate with info about nearby stuff
   #
