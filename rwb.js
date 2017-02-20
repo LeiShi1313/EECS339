@@ -28,7 +28,7 @@
 //
 $(document).ready(function() {
 	var act = getUrlParameter('act');
-	if (act == 'base' || act == 'near') {
+	if (act == 'base' || act == 'near' || act == 'login') {
 		navigator.geolocation.getCurrentPosition(Start);
 		// listen for checkbox
 		$('input:checkbox').live('change', function(){
