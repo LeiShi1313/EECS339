@@ -196,17 +196,25 @@ UpdateMap = function() {
 	if ($individual_transaction_data_table) {
 		$individual_transaction_data_table.remove();
 	}
+	var $opinion_analysis_data_table = $("#opinion_analysis_data");
+	if ($opinion_analysis_data_table) {
+		$opinion_analysis_data_table.remove();
+	}
 	if ($("#committe_transaction")) {
 		$committe_transaction_data_table = $("#committe_transaction").clone().attr('id', 'committe_transaction_data');
 		$("#data").before($committe_transaction_data_table);
-		$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Committe Transaction Data</p></td></tr></thead>');
+		$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><h3>Committe Transaction Data</h3></td></tr></thead>');
 	}
 	if ($("#individual_transaction")) {
 		$individual_transaction_data_table = $("#individual_transaction").clone().attr('id', 'individual_transaction_data');
 		$("#data").before($individual_transaction_data_table);
-		$("#individual_transaction_data").prepend('<thead><tr><td colspan=\"2\"><p>Individual Transaction Data</p></td></tr></thead>');
+		$("#individual_transaction_data").prepend('<thead><tr><td colspan=\"2\"><h3>Individual Transaction Data</h3></td></tr></thead>');
 	}
-
+	if ($("#opinion_analysis")) {
+		$opinion_analysis_data_table = $("#opinion_analysis").clone().attr('id', 'opinion_analysis_data');
+		$("#data").before($opinion_analysis_data_table);
+		$("#opinion_analysis_data").prepend('<thead><tr><td colspan=\"3\"><h3>Opinion Analysis</h3></td></tr></thead>')
+	}
 	// $("#committe_transaction").appendTo("#color");
 // The hand-out code doesn't actually set the color according to the data
 // (that's the student's job), so we'll just assign it a random color for now
@@ -231,6 +239,14 @@ UpdateMap = function() {
 		$("#individual_transaction_data").css("background-color", "white");
 	}
 
+	var avgColor = $("#opinion_analysis_data tr:eq(0) td:eq(1)").text();
+	if (avgColor > 0) {
+		$("#opinion_analysis_data").css("background-color", 'blue');
+	} else if (avgColor < 0) {
+		$("#opinion_analysis_data").css("background-color", 'red');
+	} else {
+		$("#opinion_analysis_data").css("background-color", 'white');
+	}
 },
 
 //
@@ -253,7 +269,7 @@ ViewShiftWithTimeout = function() {
 		clearTimeout(timer);
 		timer = setTimeout(function() {
 			ViewShift();
-		}, 300);
+		}, 500);
 	}
 },
 
@@ -293,9 +309,12 @@ ViewShift = function() {
 	if(document.getElementById('isIndividual').checked) {
 		individual = 'individuals';
 	}
-	if(document.getElementById('isOpinion').checked) {
-		opinion = 'opinions';
+	if ($("#isOpinion")) {
+		if(document.getElementById('isOpinion').checked) {
+			opinion = 'opinions';
+		}
 	}
+
 	$.get("rwb.pl",
 		{
 			act:	"near",

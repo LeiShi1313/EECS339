@@ -77,8 +77,8 @@ use Time::ParseDate;
 #
 # You need to override these for access to your database
 #
-my $dbuser="sjx371";
-my $dbpasswd="zgwxnVN56";
+my $dbuser="lsh9920";
+my $dbpasswd="zFe81sttE";
 
 
 #
@@ -456,7 +456,7 @@ if ($action eq "near") {
 	       print $str;
       }
     }
-    my ($str1, $error1) = aggcomm($latne, $longne,$latsw, $longsw, $cycle, $format);
+    my ($str1, $error1) = AggCommitte($latne, $longne,$latsw, $longsw, $cycle, $format);
     if (!$error1) {
       print $str1;
     }
@@ -485,7 +485,7 @@ if ($action eq "near") {
 	       print $str;
       }
     }
-    my ($str1, $error1) = aggindividuals($latne, $longne,$latsw,$longsw,$cycle,$format);
+    my ($str1, $error1) = AggIndividuals($latne, $longne,$latsw,$longsw,$cycle,$format);
     if (!$error1) {
       print $str1;
     }
@@ -499,7 +499,7 @@ if ($action eq "near") {
 	       print $str;
       }
     }
-    my ($str1, $error1) = aggopinions($latne, $longne,$latsw,$longsw,$cycle,$format);
+    my ($str1, $error1) = AggOpinions($latne, $longne,$latsw,$longsw,$cycle,$format);
     if (!$error1) {
       print $str1;
     }
@@ -882,14 +882,27 @@ sub Committees {
   }
 }
 
-sub aggcomm{
+sub AggCommitte{
   my ($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my @rows;
   my $LIMIT = 2;
   my $INCREM = 0.05;
   my $rowcount = 0;
+  my $currep = 0;
 
-    my $sqlstr = "select a.cmte_pty_affiliation, (NVL(comm,0)+NVL(cand,0)) as amount from (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as comm FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) a left join (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as cand FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) b on a.cmte_pty_affiliation=b.cmte_pty_affiliation where a.cmte_pty_affiliation is not null order by amount desc";
+    my $sqlstr = "select a.cmte_pty_affiliation, (NVL(comm,0)+NVL(cand,0)) as amount
+                  from
+                    (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as comm
+                    FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo
+                    WHERE cycle=? and latitude>? and latitude<?
+                    and longitude>? and longitude<? group by cmte_pty_affiliation) a
+                  left join
+                    (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as cand
+                    FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo
+                    WHERE cycle=? and latitude>? and latitude<?
+                    and longitude>? and longitude<? group by cmte_pty_affiliation) b
+                  on a.cmte_pty_affiliation=b.cmte_pty_affiliation
+                  where a.cmte_pty_affiliation is not null order by amount desc";
   do{
     eval{
       @rows = ExecSQL($dbuser, $dbpasswd, $sqlstr, undef,$cycle,$latsw,$latne,$longsw,$longne,$cycle,$latsw,$latne,$longsw,$longne);
@@ -899,11 +912,19 @@ sub aggcomm{
     $longsw -=  $INCREM;
     $latne += $INCREM;
     $longne += $INCREM;
+    $currep += 1;
+    if ($currep > 10) {
+      last;
+    }
   } while($rowcount < $LIMIT);
 
-  return (MakeTable("committe_transaction", "2D",
-  ["Party", "Amount"], @rows), $@);
-
+  if ($rowcount > 0) {
+    return (MakeTable("committe_transaction", "2D",
+      ["Party", "Amount"], @rows), $@);
+  } else {
+    return (MakeTable("committe_transaction", "2D",
+      ["No Result Found"], ()), $@);
+  }
 }
 
 
@@ -964,26 +985,43 @@ sub Individuals {
 }
 
 
-sub aggindividuals{
+sub AggIndividuals{
   my($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
   my @indiv;
   my $LIMIT = 2;
   my $INCREM = 0.05;
   my $rowcount = 0;
+  my $currep = 0;
 
   do{
     eval {
-      @indiv = ExecSQL($dbuser, $dbpasswd, "SELECT cmte_pty_affiliation, SUM(Transaction_amnt) as total FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo WHERE cycle=? AND latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation order by total desc", undef,$cycle, $latsw,$latne, $longsw,$longne);
+      @indiv = ExecSQL($dbuser, $dbpasswd,
+      "SELECT cmte_pty_affiliation, SUM(Transaction_amnt) as total
+      FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo
+      WHERE cycle=? AND latitude>? and latitude<?
+      and longitude>? and longitude<?
+      group by cmte_pty_affiliation
+      order by total desc", undef,$cycle, $latsw,$latne, $longsw,$longne);
     };
     $rowcount = @indiv;
     $latsw -= $INCREM;
     $longsw -= $INCREM;
     $latne += $INCREM;
     $longne += $INCREM;
+    $currep += 1;
+    if ($currep > 10) {
+      last;
+    }
   } while($rowcount < $LIMIT);
 
-  return (MakeTable("individual_transaction", "2D",
-    ["Party", "Amount"], @indiv), $@);
+  if ($rowcount > 0) {
+    return (MakeTable("individual_transaction", "2D",
+      ["Party", "Amount"], @indiv), $@);
+  } else {
+    return (MakeTable("individual_transaction", "2D",
+      ["No Result Found"], ()), $@);
+  }
+
 }
 
 
@@ -1014,78 +1052,40 @@ sub Opinions {
 }
 
 
-sub aggopinions{
+sub AggOpinions{
   my($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
-  my $LIMIT = 5;
-  my $INCREM = 0.5;
+  my $INCREM = 0.05;
   my @opi;
-  my $count = 0;
+  my $currep = 0;
+  my $rowcount = 0;
 
   do{
     eval{
-      @opi = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(color), AVg(color), STDDEV(color) FROM rwb_opinions WHERE latitude>? and latitude<? and longitude> ? and longitude<?", undef,$latsw,$latne, $longsw,$longne);
+      @opi = ExecSQL($dbuser, $dbpasswd,
+      "SELECT COUNT(color), AVg(color), STDDEV(color)
+      FROM rwb_opinions
+      WHERE latitude>? and latitude<? and longitude> ? and longitude<?", undef,$latsw,$latne, $longsw,$longne);
     };
-
-      $count = $opi[0][0];
-      $latsw -= $INCREM;
-      $longsw -=  $INCREM;
-      $latne += $INCREM;
-      $longne += $INCREM;
-
-  } while($count < $LIMIT);
-
-    my $color;
-
-    if($opi[0][1] > 0){
-      $color = 'blue';
+    $rowcount = @opi;
+    $latsw -= $INCREM;
+    $longsw -=  $INCREM;
+    $latne += $INCREM;
+    $longne += $INCREM;
+    $currep += 1;
+    if ($currep > 10) {
+      last;
     }
-    elsif($opi[0][1] < 0){
-      $color = 'red';
-    }else{
-      $color = 'white';
-    }
+  } while($opi[0][0] == 0);
 
-    create_table_opinion($opi[0][1], $opi[0][2], "Opinions", $color);
+  if ($rowcount > 0) {
+    return (MakeTable("opinion_analysis", "2D",
+      ["Count", "Average", "Standard Deviation"], @opi), $@);
+  } else {
+    return (MakeTable("opinion_analysis", "2D",
+      ["No Result Found"], ()), $@);
+  }
 }
 
-
-sub create_table{
-	my($rep, $dem, $name, $color) = @_;
-	my $sum = $rep + $dem;
-	print "<div id = \"$name\">";
-    print "<table style=\"background-color:$color;\">";
-    print"<tr>";
-    print "<th>".$name . " Summary Sum of money</th>";
-    print "<th> Republican </th>";
-    print "<th> Democratic </th>";
-    print "</tr>";
-	print "<tr>";
-    print "<td>".$sum."</td>";
-    print "<td>".$rep."</td>";
-    print "<td>".$dem."</td>";
-    print "</tr>";
-    print "</table>";
-    print "</div>";
-}
-
-sub create_table_opinion{
-	my($avg, $std, $name, $color) = @_;
-	print "<div id = \"$name\">";
-    print "<table style=\"background-color:$color;\">";
-    print"<tr>";
-    print "<th>".$name . " Summary</th>";
-    print "<th> Average </th>";
-    print "<th> Standard Deviation </th>";
-    print "</tr>";
-    print "<tr>";
-    print "<td></td>";
-    print "<td>".$avg."</td>";
-    print "<td>".$std."</td>";
-    print "</tr>";
-    print "</table>";
-    print "</div>";
-
-}
 
 #
 # Generate a table of available permissions
