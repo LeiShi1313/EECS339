@@ -350,7 +350,7 @@ if ($action eq "base") {
     print "<option value=$year>$year</option>";
   }
   print "</select>";
-  
+
 
   # Add checkboxes
   print "<input type=\"checkbox\" id=\"isCommitte\" checked/>";
@@ -450,14 +450,21 @@ if ($action eq "near") {
 
   if ($what{committees}) {
     my ($str,$error) = Committees($latne,$longne,$latsw,$longsw,$cycle,$format);
-    aggcomm($latne, $longne,$latsw, $longsw, $cycle, $format);
     if (!$error) {
       if ($format eq "table") {
-	print "<h2>Nearby committees</h2>$str";
+	       print "<h2>Nearby committees</h2>$str";
       } else {
-	print $str;
+	       print $str;
       }
     }
+    my ($str1, $error1) = aggcomm($latne, $longne,$latsw, $longsw, $cycle, $format);
+    if (!$error1) {
+      print $str1;
+    }
+    # my ($str2, $error2) = aggcand($latne, $longne,$latsw, $longsw, $cycle, $format);
+    # if (!$error2) {
+    #   print $str2;
+    # }
   }
   if ($what{candidates}) {
     my ($str,$error) = Candidates($latne,$longne,$latsw,$longsw,$cycle,$format);
@@ -494,16 +501,16 @@ if ($action eq "near") {
 }
 
 
-if ($action eq "invite-user") { 
+if ($action eq "invite-user") {
 
-  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) { 
+  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) {
     print h2('You do not have the required permissions to add users.');
   } else {
     my @permissionsList;
     eval {
       @permissionsList = ExecSQL($dbuser, $dbpasswd, "select action from rwb_permissions where name='$user'", "COL");
     };
-    if (!$run) { 
+    if (!$run) {
       print start_form(-name=>'InviteUser'),
       h2('Invite User'),
       "Name : ", textfield(-name=>'name'), p,
@@ -518,7 +525,7 @@ if ($action eq "invite-user") {
       my $username;
       $username = param('name');
       print('select permissions: $name ');
-    
+
 
     } else {
       my @testList = param('permList');
@@ -531,7 +538,7 @@ if ($action eq "invite-user") {
       my $error;
 
       $error=UserAdd($name,$password,$email,$user);
-      if ($error) { 
+      if ($error) {
         print "Can't add user because: $error";
       } else {
         print "Added user $name $email as referred by $user\n";
@@ -871,51 +878,28 @@ sub Committees {
 
 sub aggcomm{
   my ($latne, $longne, $latsw, $longsw, $cycle, $format) = @_;
-  my @rep_comm;
-  my @dem_comm;
-  my @rep_cand;
-  my @dem_cand;
-  my $LIMIT = 5;
+  my @rows;
+  my $LIMIT = 2;
   my $INCREM = 0.5;
-  my $count = 0;
+  my $rowcount = 0;
 
+    my $sqlstr = "select a.cmte_pty_affiliation, (NVL(comm,0)+NVL(cand,0)) as amount from (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as comm FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) a left join (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as cand FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cycle=? and latitude>? and latitude<? and longitude>? and longitude<? group by cmte_pty_affiliation) b on a.cmte_pty_affiliation=b.cmte_pty_affiliation where a.cmte_pty_affiliation is not null order by amount desc";
   do{
     eval{
-      @rep_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation = 'REP' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?", undef,$cycle,$latsw,$latne, $longsw,$longne);
+      @rows = ExecSQL($dbuser, $dbpasswd, $sqlstr, undef,$cycle,$latsw,$latne,$longsw,$longne,$cycle,$latsw,$latne,$longsw,$longne);
     };
-    eval{
-      @rep_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation= 'REP' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
-    };
-    eval{
-      @dem_comm = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation= 'DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
-    };
-    eval{
-      @dem_cand = ExecSQL($dbuser, $dbpasswd, "SELECT COUNT(Transaction_amnt), SUM(Transaction_amnt) FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo WHERE cmte_pty_affiliation='DEM' AND cycle=? AND latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne, $longsw,$longne);
-    };
+    $rowcount = @rows;
+    $latsw -= $INCREM;
+    $longsw -=  $INCREM;
+    $latne += $INCREM;
+    $longne += $INCREM;
+  } while($rowcount < $LIMIT);
 
-      $count = $rep_comm[0][0] +  $rep_cand[0][0]+ $dem_comm[0][0]  + $dem_cand[0][0];
-      $latsw -= $INCREM;
-      $longsw -=  $INCREM;
-      $latne += $INCREM;
-      $longne += $INCREM;
+  return (MakeTable("committe_transaction", "2D",
+  ["Party", "Amount"], @rows), $@);
 
-  } while($count <$LIMIT);
-
-    my $rep_total = $rep_comm[0][1] + $rep_cand[0][1];
-    my $dem_total = $dem_comm[0][1] + $dem_cand[0][1];
-    my $color;
-
-    if($rep_total > $dem_total){
-      $color = 'blue';
-    }
-    elsif($rep_total < $dem_total){
-      $color = 'red';
-    }else{
-      $color = 'white';
-    }
-
-    create_table($rep_total, $dem_total, "Committees", $color);
 }
+
 
 #
 # Generate a table of nearby candidates
@@ -1093,7 +1077,7 @@ sub create_table{
     print "<td>".$dem."</td>";
     print "</tr>";
     print "</table>";
-    print "</div>"; 
+    print "</div>";
 }
 
 sub create_table_opinion{
@@ -1111,7 +1095,7 @@ sub create_table_opinion{
     print "<td>".$std."</td>";
     print "</tr>";
     print "</table>";
-    print "</div>"; 
+    print "</div>";
 
 }
 

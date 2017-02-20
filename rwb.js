@@ -183,16 +183,22 @@ UpdateMap = function() {
 	UpdateMapById("individual_data", "INDIVIDUAL");
 	UpdateMapById("opinion_data","OPINION");
 
+
 // When we're done with the map update, we mark the color division as
 // Ready.
 	color.html("Ready");
 
+	color.css("height", "");
+	$("#committe_transaction").appendTo("#color");
 // The hand-out code doesn't actually set the color according to the data
 // (that's the student's job), so we'll just assign it a random color for now
-	if (Math.random()>0.5) {
+	var firstRow = $("#committe_transaction tr:eq(1) td:eq(0)").text();
+	if (firstRow == 'DEM') {
 		color.css("background-color", "blue");
-	} else {
+	} else if (firstRow == 'REP') {
 		color.css("background-color", "red");
+	} else {
+		color.css("background-color", "white");
 	}
 
 },
