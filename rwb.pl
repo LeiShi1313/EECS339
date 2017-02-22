@@ -509,7 +509,7 @@ if ($action eq "near") {
 
 if ($action eq "invite-user") {
 
-  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) {
+  if (!UserCan($user, "invite-users")) {
     print h2('You do not have the required permissions to add users.');
   } else {
     my @permissionsList;
