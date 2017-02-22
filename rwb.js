@@ -239,7 +239,7 @@ UpdateMap = function() {
 		$("#individual_transaction_data").css("background-color", "white");
 	}
 
-	var avgColor = $("#opinion_analysis_data tr:eq(0) td:eq(1)").text();
+	var avgColor = parseInt($("#opinion_analysis_data tr:eq(0) td:eq(1)").text());
 	if (avgColor > 0) {
 		$("#opinion_analysis_data").css("background-color", 'blue');
 	} else if (avgColor < 0) {
