@@ -509,7 +509,7 @@ if ($action eq "near") {
 
 if ($action eq "invite-user") {
 
-  if (!UserCan($user,"add-users") && !UserCan($user,"manage-users") && !UserCan($user, "invite-users")) {
+  if (!UserCan($user, "invite-users")) {
     print h2('You do not have the required permissions to add users.');
   } else {
     my @permissionsList;
@@ -561,7 +561,7 @@ if ($action eq "invite-user") {
       }
 
       my $subject='Account Created For You!';
-      my $content = "account created for you at http://murphy.wot.eecs.northwestern.edu/~bjz002/rwb/rwb.pl with username $name and password $password";
+      my $content = "account created for you at http://murphy.wot.eecs.northwestern.edu/~bjz002/rwb/rwb.pl (be sure to log out if you are logged in) with username $name and password $password";
       open(MAIL,"| mail -s $subject $email");
       print MAIL $content;
       close(MAIL);
