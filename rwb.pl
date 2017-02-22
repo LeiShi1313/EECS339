@@ -561,7 +561,7 @@ if ($action eq "invite-user") {
       }
 
       my $subject='Account Created For You!';
-      my $content = "account created for you at http://murphy.wot.eecs.northwestern.edu/~bjz002/rwb/rwb.pl with username $name and password $password";
+      my $content = "account created for you at http://murphy.wot.eecs.northwestern.edu/~bjz002/rwb/rwb.pl (be sure to log out if you are logged in) with username $name and password $password";
       open(MAIL,"| mail -s $subject $email");
       print MAIL $content;
       close(MAIL);
