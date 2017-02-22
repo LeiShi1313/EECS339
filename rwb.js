@@ -309,7 +309,7 @@ ViewShift = function() {
 	if(document.getElementById('isIndividual').checked) {
 		individual = 'individuals';
 	}
-	if ($("#isOpinion")) {
+	if ($("#isOpinion").length) {
 		if(document.getElementById('isOpinion').checked) {
 			opinion = 'opinions';
 		}
