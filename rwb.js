@@ -204,49 +204,111 @@ UpdateMap = function() {
 		$committe_transaction_data_table = $("#committe_transaction").clone().attr('id', 'committe_transaction_data');
 		$("#data").before($committe_transaction_data_table);
 		$("#committe_transaction_data").prepend('<thead><tr><td colspan=\"2\"><h3>Committe Transaction Data</h3></td></tr></thead>');
+		
+		// compute color
+		var committeeLength = $("#committe_transaction").find('tr').length
+		var dem = 0;
+		var rep = 0;
+		for (i=0; i < committeeLength; i++) {
+			var party = $("#committe_transaction tr:eq(" + i.toString() + ") td:eq(0)").text()
+			// console.log("party is ", party)
+			if (party == 'DEM') {
+				dem = $("#committe_transaction tr:eq(" + i.toString() + ") td:eq(1)").text()
+			}
+			else if (party == 'REP') {
+				rep = $("#committe_transaction tr:eq(" + i.toString() + ") td:eq(1)").text()
+			}
+		}
+		$committee_color = "rgb(" + rep + "," + 0 + "," + dem + ")"
+		console.log("comm color is ", $committee_color, " red is ", rep, " and blue is ", dem)
+		color.css("background-color", $committee_color);
+		$("#committe_transaction_data").css("background-color", $committee_color);
 	}
+
 	if ($("#individual_transaction")) {
 		$individual_transaction_data_table = $("#individual_transaction").clone().attr('id', 'individual_transaction_data');
 		$("#data").before($individual_transaction_data_table);
 		$("#individual_transaction_data").prepend('<thead><tr><td colspan=\"2\"><h3>Individual Transaction Data</h3></td></tr></thead>');
+
+		// compute color
+		var committeeLength = $("#individual_transaction").find('tr').length
+		var dem = 0;
+		var rep = 0;
+		for (i=0; i < committeeLength; i++) {
+			var party = $("#individual_transaction tr:eq(" + i.toString() + ") td:eq(0)").text()
+			// console.log("party is ", party)
+			if (party == 'DEM') {
+				dem = $("#individual_transaction tr:eq(" + i.toString() + ") td:eq(1)").text()
+			}
+			else if (party == 'REP') {
+				rep = $("#individual_transaction tr:eq(" + i.toString() + ") td:eq(1)").text()
+			}
+		}
+		$i_color = "rgb(" + rep + "," + 0 + "," + dem + ")"
+		console.log("indiv color is ", $i_color, " red is ", rep, " and blue is ", dem)
+		color.css("background-color", $i_color);
+		$("#individual_transaction").css("background-color", $i_color);
 	}
+
 	if ($("#opinion_analysis")) {
 		$opinion_analysis_data_table = $("#opinion_analysis").clone().attr('id', 'opinion_analysis_data');
 		$("#data").before($opinion_analysis_data_table);
 		$("#opinion_analysis_data").prepend('<thead><tr><td colspan=\"3\"><h3>Opinion Analysis</h3></td></tr></thead>')
+
+		// compute color
+		var avgColor = parseFloat($("#opinion_analysis tr:eq(1) td:eq(1)").text());
+		var mainExtent = parseInt(Math.abs(avgColor) * 255);
+		var lesserExtent = parseInt((1 - Math.abs(avgColor)) * 255);
+		// democrat
+		if (avgColor > 0) {
+			var rgbColor = "rgb(" + lesserExtent +" , 0, " + mainExtent + ")";
+			console.log("op color is ", rgbColor)
+			$("#opinion_analysis_data").css("background-color", rgbColor);
+		} else if (avgColor < 0) {
+			var rgbColor = "rgb(" + mainExtent + ",0," + lesserExtent + ")";
+			console.log("op color is ", rgbColor)
+			$("#opinion_analysis_data").css("background-color", rgbColor);
+		} else {
+			$("#opinion_analysis_data").css("background-color", 'white');
+		}
 	}
 	// $("#committe_transaction").appendTo("#color");
-// The hand-out code doesn't actually set the color according to the data
-// (that's the student's job), so we'll just assign it a random color for now
-	var firstRow = $("#committe_transaction tr:eq(1) td:eq(0)").text();
-	if (firstRow == 'DEM') {
-		color.css("background-color", "blue");
-		$("#committe_transaction_data").css("background-color", "blue");
-	} else if (firstRow == 'REP') {
-		color.css("background-color", "red");
-		$("#committe_transaction_data").css("background-color", "red");
-	} else {
-		color.css("background-color", "white");
-		$("#committe_transaction_data").css("background-color", "white");
-	}
 
-	var firstRow = $("#individual_transaction tr:eq(1) td:eq(0)").text();
-	if (firstRow == 'DEM') {
-		$("#individual_transaction_data").css("background-color", "blue");
-	} else if (firstRow == 'REP') {
-		$("#individual_transaction_data").css("background-color", "red");
-	} else {
-		$("#individual_transaction_data").css("background-color", "white");
-	}
+	
 
-	var avgColor = parseFloat($("#opinion_analysis tr:eq(1) td:eq(1)").text());
-	if (avgColor > 0) {
-		$("#opinion_analysis_data").css("background-color", 'blue');
-	} else if (avgColor < 0) {
-		$("#opinion_analysis_data").css("background-color", 'red');
-	} else {
-		$("#opinion_analysis_data").css("background-color", 'white');
-	}
+
+
+	
+
+
+
+
+	// $("#committe_transaction tr:eq(1) td:eq(0)").text()
+	// console.log($data)
+
+
+
+	// if (firstRow == 'DEM') {
+	// 	color.css("background-color", $political_color);
+	// 	$("#committe_transaction_data").css("background-color", $political_color);
+	// } else if (firstRow == 'REP') {
+	// 	color.css("background-color", "red");
+	// 	$("#committe_transaction_data").css("background-color", $political_color);
+	// } else {
+	// 	color.css("background-color", "white");
+	// 	$("#committe_transaction_data").css("background-color", "white");
+	// }
+
+	// var firstRow = $("#individual_transaction tr:eq(1) td:eq(0)").text();
+	// if (firstRow == 'DEM') {
+	// 	$("#individual_transaction_data").css("background-color", "blue");
+	// } else if (firstRow == 'REP') {
+	// 	$("#individual_transaction_data").css("background-color", "red");
+	// } else {
+	// 	$("#individual_transaction_data").css("background-color", "white");
+	// }
+
+	
 },
 
 //
