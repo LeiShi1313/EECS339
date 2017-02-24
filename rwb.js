@@ -34,9 +34,9 @@ $(document).ready(function() {
 		$('input:checkbox').live('change', function(){
 			ViewShift();
 		});
-		$('#cycle').live('change', function() {
-			ViewShift();
-		});
+		// $('#cycle').live('change', function() {
+		// 	ViewShift();
+		// });
 	} else if (act == 'give-opinion-data') {
 		$("input[name=.submit]").attr('disabled','disabled');
 		GetCurrentLocationByParmOrAPI();
@@ -45,6 +45,7 @@ $(document).ready(function() {
 
 // Global variables
 var map, usermark, markers = [],
+    cycles = [],
 
 getUrlParameter = function getUrlParameter(sParam) {
   var sPageURL = decodeURIComponent(window.location.search.substring(1)),
@@ -92,6 +93,17 @@ ChangeFormByLocation = function(lat, long) {
 			$('<br>').insertBefore("#you-are-for");
 	  }
 	});
+},
+
+SelectCycle = function(cycle) {
+  var index = cycles.indexOf(cycle);
+  if (index > -1) {
+    cycles.splice(index, 1);
+  } else {
+    cycles.push(cycle);
+  }
+  console.log(cycles);
+  ViewShift();
 },
 
 // UpdateMapById draws markers of a given category (id)
@@ -384,7 +396,7 @@ ViewShift = function() {
 			longne:	ne.lng(),
 			latsw:	sw.lat(),
 			longsw:	sw.lng(),
-			cycle: $('#cycle').val(),
+			cycle: cycles.join(','),
 			format:	"raw",
 			what:	$.grep([committe,candidate,individual,opinion], Boolean).join(",")
 		}, NewData);

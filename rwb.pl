@@ -337,16 +337,19 @@ if ($action eq "base") {
 
   # Add cycle selection
   #
-  my @cycle_list = ('7980', '8182', '8384', '8586', '8788', '8990', '9192', '9394', '9596', '9798', '9900', '0102', '0304', '0506', '0708', '0910', '1112', '1314');
+  print "<div id=\"cycles\">";
+  my @cycle_list = GetCycles();
   print "<span>cycle: </span>";
-  print "<select name=\"cycle\" id=\"cycle\">";
+  # print "<select name=\"cycle\" id=\"cycle\">";
   foreach my $year (@cycle_list) {
-    print "<option value=$year>$year</option>";
+    print "<input type=\"checkbox\" onclick=SelectCycle(\"$year->[0]\") />$year->[0]";
   }
-  print "</select>";
+  # print "</select>";
+  print "</div>";
 
 
   # Add checkboxes
+  print "<div id=\"checkboxes\">";
   print "<input type=\"checkbox\" id=\"isCommitte\" checked/>";
   print "<span>show committe</span>";
   print "<input type=\"checkbox\" id=\"isCandidate\"/>";
@@ -357,6 +360,7 @@ if ($action eq "base") {
     print "<input type=\"checkbox\" id=\"isOpinion\"/>";
     print "<span>show opinions</span>";
   }
+  print "</div>";
   #
   #
   # And a map which will be populated later
@@ -436,7 +440,7 @@ if ($action eq "near") {
   my %what;
 
   $format = "table" if !defined($format);
-  $cycle = "1112" if !defined($cycle);
+  $cycle = "1112" if !defined($cycle) || !$cycle;
 
   if (!defined($whatparam) || $whatparam eq "all") {
     %what = ( committees => 1,
@@ -460,10 +464,6 @@ if ($action eq "near") {
     if (!$error1) {
       print $str1;
     }
-    # my ($str2, $error2) = aggcand($latne, $longne,$latsw, $longsw, $cycle, $format);
-    # if (!$error2) {
-    #   print $str2;
-    # }
   }
   if ($what{candidates}) {
     my ($str,$error) = Candidates($latne,$longne,$latsw,$longsw,$cycle,$format);
@@ -856,17 +856,22 @@ print end_html;
 # The remainder includes utilty and other functions
 #
 
+sub GetCycles {
+  my @rows;
+  eval { @rows = ExecSQL($dbuser, $dbpasswd, "select distinct(cycle) from cs339.committee_master"); };
+  return @rows;
+}
 
 #
 # Generate a table of nearby committees
-# ($table|$raw,$error) = Committees(latne,longne,latsw,longsw,cycle,format)
+# ($table|$raw,$error) = Committees(latne,longne,latsw,longsw,cycle,format)gg
 # $error false on success, error string on failure
 #
 sub Committees {
   my ($latne,$longne,$latsw,$longsw,$cycle,$format) = @_;
   my @rows;
   eval {
-    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, cmte_nm, cmte_pty_affiliation, cmte_st1, cmte_st2, cmte_city, cmte_st, cmte_zip from cs339.committee_master natural join cs339.cmte_id_to_geo where cycle=? and latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne,$longsw,$longne);
+    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, cmte_nm, cmte_pty_affiliation, cmte_st1, cmte_st2, cmte_city, cmte_st, cmte_zip from cs339.committee_master natural join cs339.cmte_id_to_geo where cycle in ($cycle) and latitude>? and latitude<? and longitude>? and longitude<?",undef,$latsw,$latne,$longsw,$longne);
   };
 
   if ($@) {
@@ -894,18 +899,18 @@ sub AggCommitte{
                   from
                     (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as comm
                     FROM cs339.committee_master NATURAL JOIN cs339.comm_to_comm NATURAL JOIN cs339.cmte_id_to_geo
-                    WHERE cycle=? and latitude>? and latitude<?
+                    WHERE cycle in ($cycle) and latitude>? and latitude<?
                     and longitude>? and longitude<? group by cmte_pty_affiliation) a
                   left join
                     (SELECT cmte_pty_affiliation, sum(TRANSACTION_AMNT) as cand
                     FROM cs339.committee_master NATURAL JOIN cs339.comm_to_cand NATURAL JOIN cs339.cmte_id_to_geo
-                    WHERE cycle=? and latitude>? and latitude<?
+                    WHERE cycle in ($cycle) and latitude>? and latitude<?
                     and longitude>? and longitude<? group by cmte_pty_affiliation) b
                   on a.cmte_pty_affiliation=b.cmte_pty_affiliation
                   where a.cmte_pty_affiliation is not null order by amount desc";
   do{
     eval{
-      @rows = ExecSQL($dbuser, $dbpasswd, $sqlstr, undef,$cycle,$latsw,$latne,$longsw,$longne,$cycle,$latsw,$latne,$longsw,$longne);
+      @rows = ExecSQL($dbuser, $dbpasswd, $sqlstr, undef,$latsw,$latne,$longsw,$longne,$latsw,$latne,$longsw,$longne);
     };
     $rowcount = @rows;
     $latsw -= $INCREM;
@@ -937,7 +942,7 @@ sub Candidates {
   my ($latne,$longne,$latsw,$longsw,$cycle,$format) = @_;
   my @rows;
   eval {
-    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, cand_name, cand_pty_affiliation, cand_st1, cand_st2, cand_city, cand_st, cand_zip from cs339.candidate_master natural join cs339.cand_id_to_geo where cycle=? and latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne,$longsw,$longne);
+    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, cand_name, cand_pty_affiliation, cand_st1, cand_st2, cand_city, cand_st, cand_zip from cs339.candidate_master natural join cs339.cand_id_to_geo where cycle in ($cycle) and latitude>? and latitude<? and longitude>? and longitude<?",undef,$latsw,$latne,$longsw,$longne);
   };
 
   if ($@) {
@@ -968,7 +973,7 @@ sub Individuals {
   my ($latne,$longne,$latsw,$longsw,$cycle,$format) = @_;
   my @rows;
   eval {
-    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, name, city, state, zip_code, employer, transaction_amnt from cs339.individual natural join cs339.ind_to_geo where cycle=? and latitude>? and latitude<? and longitude>? and longitude<?",undef,$cycle,$latsw,$latne,$longsw,$longne);
+    @rows = ExecSQL($dbuser, $dbpasswd, "select latitude, longitude, name, city, state, zip_code, employer, transaction_amnt from cs339.individual natural join cs339.ind_to_geo where cycle in ($cycle) and latitude>? and latitude<? and longitude>? and longitude<?",undef,$latsw,$latne,$longsw,$longne);
   };
 
   if ($@) {
@@ -998,10 +1003,10 @@ sub AggIndividuals{
       @indiv = ExecSQL($dbuser, $dbpasswd,
       "SELECT cmte_pty_affiliation, SUM(Transaction_amnt) as total
       FROM cs339.committee_master NATURAL JOIN cs339.individual NATURAL JOIN cs339.ind_to_geo
-      WHERE cycle=? AND latitude>? and latitude<?
+      WHERE cycle in ($cycle) AND latitude>? and latitude<?
       and longitude>? and longitude<?
       group by cmte_pty_affiliation
-      order by total desc", undef,$cycle, $latsw,$latne, $longsw,$longne);
+      order by total desc", undef,$latsw,$latne, $longsw,$longne);
     };
     $rowcount = @indiv;
     $latsw -= $INCREM;
