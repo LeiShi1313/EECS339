@@ -96,7 +96,12 @@ ChangeFormByLocation = function(lat, long) {
 },
 
 SelectCycle = function(cycle) {
-  cycles.push(cycle);
+  var index = cycles.indexOf(cycle);
+  if (index > -1) {
+    cycles.splice(index, 1);
+  } else {
+    cycles.push(cycle);
+  }
   console.log(cycles);
   ViewShift();
 },
