@@ -257,16 +257,16 @@ UpdateMap = function() {
 
 		// compute color
 		var avgColor = parseFloat($("#opinion_analysis tr:eq(1) td:eq(1)").text());
-		var mainExtent = parseInt(Math.abs(avgColor) * 255);
-		var lesserExtent = parseInt((1 - Math.abs(avgColor)) * 255);
-		// democrat
+		var mainExtent = parseInt((1+ Math.abs(avgColor))/2 * 255);
+		var lesserExtent = 255 - mainExtent;
+		// rep
 		if (avgColor > 0) {
 			var rgbColor = "rgb(" + lesserExtent +" , 0, " + mainExtent + ")";
-			console.log("op color is ", rgbColor)
+			console.log("pos op color is ", rgbColor)
 			$("#opinion_analysis_data").css("background-color", rgbColor);
 		} else if (avgColor < 0) {
 			var rgbColor = "rgb(" + mainExtent + ",0," + lesserExtent + ")";
-			console.log("op color is ", rgbColor)
+			console.log("neg op color is ", rgbColor)
 			$("#opinion_analysis_data").css("background-color", rgbColor);
 		} else {
 			$("#opinion_analysis_data").css("background-color", 'white');
